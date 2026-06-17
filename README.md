@@ -162,3 +162,40 @@ node server-mock.js
 
 - **Rate-Limiting** : Pour éviter le spam d'envois de gros volumes d'images base64, une limite stricte de 20 requêtes par tranche de 15 minutes par adresse IP est active sur l'URL `/submit-devis`.
 - **CORS** : En mode production, seules les requêtes provenant de `https://massacre-officiel.myshopify.com` et `https://massacre-officiel.com` sont autorisées. En mode développement, toutes les origines sont acceptées pour faciliter le débogage.
+
+
+---
+
+## 🧪 Tester la Création de Draft Order
+
+Un script de test est fourni pour vérifier que votre configuration Shopify fonctionne :
+
+```bash
+# Test en local (serveur sur localhost:3000)
+node test-draft-order.js
+
+# Test en production (Railway/Heroku)
+node test-draft-order.js https://votre-projet.up.railway.app/submit-devis
+```
+
+**Le script va** :
+1. Envoyer une demande de test avec des images 1x1 pixel
+2. Créer un Draft Order dans Shopify Admin
+3. Afficher le résultat (ID, nom, statut)
+
+**Vérifiez ensuite** dans Shopify Admin → Orders → Drafts :
+- Un nouveau Draft Order doit apparaître
+- Avec le tag `configurateur`
+- Les URLs Cloudinary dans les propriétés du produit
+
+---
+
+## 📚 Documentation Complète
+
+Pour un guide pas à pas complet de la configuration, consultez :
+- **[CONFIGURATION_DRAFT_ORDERS_SHOPIFY.md](../CONFIGURATION_DRAFT_ORDERS_SHOPIFY.md)** - Guide détaillé de configuration
+
+---
+
+**Dernière mise à jour** : 17 juin 2026
+**Statut** : ✅ Opérationnel et prêt pour la production
