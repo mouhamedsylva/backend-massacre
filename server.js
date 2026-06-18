@@ -9,34 +9,47 @@ const devisRouter = require("./src/routes/devis");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ─── Configuration Railway/Proxy ──────────────────────────────────────────────
+// Railway utilise un proxy inverse, on doit faire confiance aux headers X-Forwarded-*
+app.set('trust proxy', true);
+
 // ─── Sécurité ────────────────────────────────────────────────────────────────
 app.use(helmet());
 
-// Autoriser uniquement le domaine Shopify en production
-const allowedOrigins = [
-  "https://massacre-bwh1wq9t.myshopify.com",
-  "https://massacre-officiel.com",
-  // En développement local, autoriser toutes les origines
-  ...(process.env.NODE_ENV !== "production" ? ["http://localhost:*"] : []),
-];
+// ─── CORS Configuration ──────────────────────────────────────────────────────
+// Autoriser les requêtes depuis votre store Shopify et localhost pour tests
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Autoriser les requêtes sans origin (Postman, tests serveur, etc.)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Liste des domaines autorisés
+    const allowedDomains = [
+      'massacre-bwh1wq9t.myshopify.com',
+      'massacre-officiel.com',
+      'localhost',
+      '127.0.0.1'
+    ];
+    
+    // Vérifier si l'origin contient un des domaines autorisés
+    const isAllowed = allowedDomains.some(domain => origin.includes(domain));
+    
+    if (isAllowed || process.env.NODE_ENV !== 'production') {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS] Origine bloquée : ${origin}`);
+      callback(new Error(`Origine CORS non autorisée : ${origin}`));
+    }
+  },
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Autoriser les requêtes sans origin (ex: Postman, tests)
-      if (!origin || process.env.NODE_ENV !== "production") {
-        return callback(null, true);
-      }
-      if (allowedOrigins.some((o) => origin.startsWith(o.replace("*", "")))) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Origine CORS non autorisée : ${origin}`));
-      }
-    },
-    methods: ["POST"],
-    allowedHeaders: ["Content-Type"],
-  })
-);
+app.use(cors(corsOptions));
 
 // ─── Rate Limiting ────────────────────────────────────────────────────────────
 // Max 20 soumissions par IP toutes les 15 minutes (anti-spam)
