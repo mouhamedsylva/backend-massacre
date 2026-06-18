@@ -2,7 +2,7 @@
  * shopify.service.js
  * Crée un Draft Order dans Shopify via l'Admin API REST.
  *
- * Documentation : https://shopify.dev/docs/api/admin-rest/2026-04/resources/draftorder
+ * Documentation : https://shopify.dev/docs/api/admin-rest/2024-10/resources/draftorder
  */
 
 // node-fetch v3 est un module ESM, on utilise un import dynamique depuis un module CJS
@@ -10,7 +10,7 @@
 // la version globale fetch disponible nativement depuis Node 18.
 const SHOPIFY_STORE = process.env.SHOPIFY_STORE_DOMAIN; // ex: massacre-officiel.myshopify.com
 const SHOPIFY_TOKEN = process.env.SHOPIFY_ADMIN_API_TOKEN; // Token d'accès Admin API (jamais exposé)
-const API_VERSION = "2026-04";
+const API_VERSION = "2024-10"; // Version stable de l'API Shopify
 
 /**
  * Mappe les URLs des vues en `properties` Shopify (champs visibles dans l'admin).
