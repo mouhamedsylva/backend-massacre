@@ -70,6 +70,12 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
   console.log(`[Devis] 📋 Détails :`);
   console.log(`   Client: ${customer.first_name} ${customer.last_name}`);
   console.log(`   Email: ${customer.email}`);
+  if (customer.phone) {
+    console.log(`   Téléphone: ${customer.phone}`);
+  }
+  if (customer.message) {
+    console.log(`   Message: ${customer.message}`);
+  }
   console.log(`   Produit: ${product_title}`);
   console.log(`   Images:`);
   Object.entries(imageUrls).forEach(([view, url]) => {
