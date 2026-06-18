@@ -27,7 +27,7 @@ const corsOptions = {
     
     // Liste des domaines autorisés
     const allowedDomains = [
-      'massacre-bwh1wq9t.myshopify.com',
+      'massacre-bwh1wq9.myshopify.com',
       'massacre-officiel.com',
       'localhost',
       '127.0.0.1'
