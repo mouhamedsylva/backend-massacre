@@ -14,7 +14,7 @@ const router = express.Router();
 
 const { validateDevis } = require("../middlewares/validate");
 const { uploadAllViews } = require("../services/cloudinary.service");
-// const { createDraftOrder } = require("../services/shopify.service"); // Désactivé temporairement
+const { createDraftOrder } = require("../services/shopify.service");
 
 /**
  * POST /submit-devis
@@ -55,19 +55,39 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
     });
   }
 
+  // ── Étape 2 : Créer le Draft Order Shopify ────────────────────────────────────
   // ── Étape 2 : Créer une commande factice (pour présentation) ──────────────────
   // Au lieu de Shopify API, on retourne simplement un succès
   // L'admin recevra les infos par email ou les verra dans les logs
   
-  const draftOrder = {
-    id: `draft-${Date.now()}`,
-    name: `#DEMO-${Math.floor(Math.random() * 1000)}`,
-    status: "pending_review",
-    created_at: new Date().toISOString(),
-  };
+  // const draftOrder = {
+  //   id: `draft-${Date.now()}`,
+  //   name: `#DEMO-${Math.floor(Math.random() * 1000)}`,
+  //   status: "pending_review",
+  //   created_at: new Date().toISOString(),
+  // };
 
-  console.log(`[Devis] ✅ Devis enregistré pour ${customer.email}`);
-  console.log(`[Devis] 📋 Détails :`);
+  // console.log(`[Devis] ✅ Devis enregistré pour ${customer.email}`);
+  // console.log(`[Devis] 📋 Détails :`);
+  let draftOrder;
+  try {
+    console.log("[Devis] Création du Draft Order Shopify...");
+    draftOrder = await createDraftOrder({
+      customer,
+      product_title,
+      imageUrls,
+    });
+    console.log(`[Devis] ✅ Draft Order créé : ${draftOrder.name} (ID: ${draftOrder.id})`);
+  } catch (err) {
+    console.error("[Devis] ❌ Erreur Shopify :", err.message);
+    return res.status(502).json({
+      success: false,
+      error: "Votre devis n'a pas pu être enregistré. Notre équipe a été notifiée. Veuillez réessayer ou nous contacter.",
+    });
+  }
+
+  // Logs détaillés pour l'admin
+  console.log(`[Devis] 📋 Détails du devis :`);
   console.log(`   Client: ${customer.first_name} ${customer.last_name}`);
   console.log(`   Email: ${customer.email}`);
   if (customer.phone) {
@@ -77,6 +97,7 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
     console.log(`   Message: ${customer.message}`);
   }
   console.log(`   Produit: ${product_title}`);
+  console.log(`   Draft Order: ${draftOrder.name}`);
   console.log(`   Images:`);
   Object.entries(imageUrls).forEach(([view, url]) => {
     console.log(`   - ${view}: ${url}`);
