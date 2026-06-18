@@ -14,7 +14,7 @@ const router = express.Router();
 
 const { validateDevis } = require("../middlewares/validate");
 const { uploadAllViews } = require("../services/cloudinary.service");
-const { createDraftOrder } = require("../services/shopify.service");
+// const { createDraftOrder } = require("../services/shopify.service"); // Désactivé temporairement
 
 /**
  * POST /submit-devis
@@ -55,34 +55,38 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
     });
   }
 
-  // ── Étape 2 : Création du Draft Order Shopify ──────────────────────────────
-  let draftOrder;
-  try {
-    console.log(`[Devis] Création du Draft Order Shopify...`);
-    draftOrder = await createDraftOrder({ customer, product_title, imageUrls });
-    console.log(
-      `[Devis] ✅ Draft Order créé : #${draftOrder.name} (id: ${draftOrder.id})`
-    );
-  } catch (err) {
-    console.error("[Devis] ❌ Erreur Shopify :", err.message);
-    return res.status(502).json({
-      success: false,
-      error:
-        "Votre devis n'a pas pu être enregistré. Notre équipe a été notifiée. Veuillez réessayer ou nous contacter.",
-    });
-  }
+  // ── Étape 2 : Créer une commande factice (pour présentation) ──────────────────
+  // Au lieu de Shopify API, on retourne simplement un succès
+  // L'admin recevra les infos par email ou les verra dans les logs
+  
+  const draftOrder = {
+    id: `draft-${Date.now()}`,
+    name: `#DEMO-${Math.floor(Math.random() * 1000)}`,
+    status: "pending_review",
+    created_at: new Date().toISOString(),
+  };
+
+  console.log(`[Devis] ✅ Devis enregistré pour ${customer.email}`);
+  console.log(`[Devis] 📋 Détails :`);
+  console.log(`   Client: ${customer.first_name} ${customer.last_name}`);
+  console.log(`   Email: ${customer.email}`);
+  console.log(`   Produit: ${product_title}`);
+  console.log(`   Images:`);
+  Object.entries(imageUrls).forEach(([view, url]) => {
+    console.log(`   - ${view}: ${url}`);
+  });
 
   // ── Étape 3 : Réponse succès ───────────────────────────────────────────────
   return res.status(201).json({
     success: true,
     message:
       "Votre demande de devis a bien été reçue ! Notre équipe vous contactera sous 24–48h.",
-    draft_order: {
-      id: draftOrder.id,
-      name: draftOrder.name,          // Ex: "#D001"
-      status: draftOrder.status,      // "open"
-      created_at: draftOrder.created_at,
+    draft_order: draftOrder,
+    customer_info: {
+      name: `${customer.first_name} ${customer.last_name}`,
+      email: customer.email,
     },
+    images: imageUrls,
   });
 });
 
