@@ -8,7 +8,7 @@
  */
 
 // Utiliser fetch natif de Node 18+
-const API_URL = process.argv[2] || 'http://localhost:3000/submit-devis';
+const API_URL = process.argv[2] || 'https://backend-massacre-production.up.railway.app/submit-devis';
 
 console.log('🧪 Test de création de Draft Order Shopify');
 console.log('📍 URL:', API_URL);

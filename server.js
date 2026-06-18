@@ -14,7 +14,7 @@ app.use(helmet());
 
 // Autoriser uniquement le domaine Shopify en production
 const allowedOrigins = [
-  "https://massacre-officiel.myshopify.com",
+  "https://massacre-bwh1wq9t.myshopify.com",
   "https://massacre-officiel.com",
   // En développement local, autoriser toutes les origines
   ...(process.env.NODE_ENV !== "production" ? ["http://localhost:*"] : []),
