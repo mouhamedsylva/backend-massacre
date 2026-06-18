@@ -15,10 +15,11 @@ const API_VERSION = "2024-10"; // Version stable de l'API Shopify
  * @param {Object} params
  * @param {Object} params.customer        - { email, first_name, last_name }
  * @param {string} params.product_title   - Nom du produit personnalisé
+ * @param {string} params.product_price   - Prix du produit de base
  * @param {Object} params.imageUrls       - URLs des maquettes par vue
  * @returns {Promise<Object>}             - Le Draft Order créé
  */
-async function createDraftOrder({ customer, product_title, imageUrls }) {
+async function createDraftOrder({ customer, product_title, product_price, imageUrls }) {
   if (!SHOPIFY_STORE || !SHOPIFY_TOKEN) {
     throw new Error(
       "Variables d'environnement Shopify manquantes (SHOPIFY_STORE_DOMAIN ou SHOPIFY_ADMIN_API_TOKEN)."
@@ -66,7 +67,7 @@ async function createDraftOrder({ customer, product_title, imageUrls }) {
         {
           title: product_title,
           quantity: 1,
-          originalUnitPrice: "0.00",
+          originalUnitPrice: product_price || "0.00",
           taxable: true,
           requiresShipping: true,
           customAttributes: customAttributes

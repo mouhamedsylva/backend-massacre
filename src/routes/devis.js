@@ -36,7 +36,7 @@ const { createDraftOrder } = require("../services/shopify.service");
  * }
  */
 router.post("/submit-devis", validateDevis, async (req, res) => {
-  const { customer, product_title, images } = req.body;
+  const { customer, product_title, product_price, images } = req.body;
 
   // ── Étape 1 : Upload Cloudinary ──────────────────────────────────────────────
   let imageUrls;
@@ -56,25 +56,13 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
   }
 
   // ── Étape 2 : Créer le Draft Order Shopify ────────────────────────────────────
-  // ── Étape 2 : Créer une commande factice (pour présentation) ──────────────────
-  // Au lieu de Shopify API, on retourne simplement un succès
-  // L'admin recevra les infos par email ou les verra dans les logs
-  
-  // const draftOrder = {
-  //   id: `draft-${Date.now()}`,
-  //   name: `#DEMO-${Math.floor(Math.random() * 1000)}`,
-  //   status: "pending_review",
-  //   created_at: new Date().toISOString(),
-  // };
-
-  // console.log(`[Devis] ✅ Devis enregistré pour ${customer.email}`);
-  // console.log(`[Devis] 📋 Détails :`);
   let draftOrder;
   try {
     console.log("[Devis] Création du Draft Order Shopify...");
     draftOrder = await createDraftOrder({
       customer,
       product_title,
+      product_price,
       imageUrls,
     });
     console.log(`[Devis] ✅ Draft Order créé : ${draftOrder.name} (ID: ${draftOrder.id})`);
