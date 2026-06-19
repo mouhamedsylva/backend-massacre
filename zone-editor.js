@@ -73,30 +73,25 @@
 
     // Ajouter une nouvelle zone
     function addZone() {
-      const overlay = document.getElementById('zone-overlay');
-      const container = document.getElementById('canvas-container');
-      const img = document.getElementById('product-image');
-      
-      const imgRect = img.getBoundingClientRect();
-      const containerRect = container.getBoundingClientRect();
-      
-      // Créer la zone au centre
-      const zoneWidth = 200;
-      const zoneHeight = 200;
-      const zoneLeft = (imgRect.width - zoneWidth) / 2;
-      const zoneTop = (imgRect.height - zoneHeight) / 2;
-      
-      const zoneData = {
-        id: `zone-${++zoneCounter}`,
-        x: Math.round(zoneLeft),
-        y: Math.round(zoneTop),
-        w: zoneWidth,
-        h: zoneHeight
-      };
-      
-      zones[currentView].push(zoneData);
-      renderZones();
-      updateJSON();
+        const img = document.getElementById('product-image');
+        const imgRect = img.getBoundingClientRect();
+
+        const zoneWidthPx = 200;
+        const zoneHeightPx = 200;
+        const zoneLeftPx = (imgRect.width - zoneWidthPx) / 2;
+        const zoneTopPx = (imgRect.height - zoneHeightPx) / 2;
+
+        const zoneData = {
+            id: `zone-${++zoneCounter}`,
+            xPct: zoneLeftPx / imgRect.width,
+            yPct: zoneTopPx / imgRect.height,
+            wPct: zoneWidthPx / imgRect.width,
+            hPct: zoneHeightPx / imgRect.height
+        };
+
+        zones[currentView].push(zoneData);
+        renderZones();
+        updateJSON();
     }
 
     // Rendre toutes les zones de la vue courante
@@ -117,6 +112,9 @@
 
     // Créer l'élément DOM d'une zone
     function createZoneElement(zoneData, index) {
+      const img = document.getElementById('product-image');
+      const imgRect = img.getBoundingClientRect();
+      
       const zone = document.createElement('div');
       zone.className = 'editable-zone';
       zone.dataset.index = index;
@@ -240,15 +238,18 @@
 
     // Sauvegarder la position d'une zone
     function saveZonePosition(zone) {
-      const index = parseInt(zone.dataset.index);
-      zones[currentView][index] = {
-        x: Math.round(parseInt(zone.style.left)),
-        y: Math.round(parseInt(zone.style.top)),
-        w: Math.round(parseInt(zone.style.width)),
-        h: Math.round(parseInt(zone.style.height))
-      };
-      updateJSON();
-      updateZoneList();
+        const img = document.getElementById('product-image');
+        const imgRect = img.getBoundingClientRect();
+        const index = parseInt(zone.dataset.index);
+
+        zones[currentView][index] = {
+            xPct: parseInt(zone.style.left) / imgRect.width,
+            yPct: parseInt(zone.style.top) / imgRect.height,
+            wPct: parseInt(zone.style.width) / imgRect.width,
+            hPct: parseInt(zone.style.height) / imgRect.height
+        };
+        updateJSON();
+        updateZoneList();
     }
 
     // Mettre à jour le label d'une zone
