@@ -70,6 +70,9 @@ app.use("/submit-devis", limiter);
 app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
+// ─── Servir l'éditeur de zones ────────────────────────────────────────────────
+app.use(express.static("..", { index: false }));
+
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/", devisRouter);
 app.use("/api/zones", zonesRouter);

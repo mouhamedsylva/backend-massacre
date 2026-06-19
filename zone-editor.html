@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Éditeur de Zones Éditables - Massacre Officiel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    header {
+      background: #2d3748;
+      color: white;
+      padding: 24px 32px;
+      border-bottom: 4px solid #667eea;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: #cbd5e0;
+      font-size: 14px;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 0;
+      min-height: 600px;
+    }
+
+    .editor-section {
+      padding: 32px;
+      background: #f7fafc;
+    }
+
+    .sidebar {
+      background: white;
+      border-left: 1px solid #e2e8f0;
+      padding: 32px;
+      overflow-y: auto;
+    }
+
+    .product-selector {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #2d3748;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+
+    .view-tab {
+      flex: 1;
+      padding: 10px;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .view-tab:hover {
+      border-color: #667eea;
+      background: #f7fafc;
+    }
+
+    .view-tab.active {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+
+    .canvas-container {
+      position: relative;
+      display: inline-block;
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    #product-image {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      user-select: none;
+    }
+
+    .zone-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .editable-zone {
+      position: absolute;
+      border: 3px dashed #ff0000;
+      background: rgba(255, 0, 0, 0.1);
+      cursor: move;
+      pointer-events: all;
+      min-width: 50px;
+      min-height: 50px;
+    }
+
+    .editable-zone:hover {
+      background: rgba(255, 0, 0, 0.2);
+      border-color: #ff3333;
+    }
+
+    .zone-handle {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #ff0000;
+      border: 2px solid white;
+      border-radius: 50%;
+      cursor: nwse-resize;
+    }
+
+    .zone-handle.nw { top: -6px; left: -6px; cursor: nw-resize; }
+    .zone-handle.ne { top: -6px; right: -6px; cursor: ne-resize; }
+    .zone-handle.sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+    .zone-handle.se { bottom: -6px; right: -6px; cursor: se-resize; }
+
+    .zone-label {
+      position: absolute;
+      top: -24px;
+      left: 0;
+      background: #ff0000;
+      color: white;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 3px;
+      white-space: nowrap;
+    }
+
+    .delete-zone {
+      position: absolute;
+      top: -24px;
+      right: 0;
+      background: #e53e3e;
+      color: white;
+      border: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .delete-zone:hover {
+      background: #c53030;
+    }
+
+    .controls {
+      margin-top: 24px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5a67d8;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-success {
+      background: #48bb78;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #38a169;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: #2d3748;
+    }
+
+    .btn-secondary:hover {
+      background: #cbd5e0;
+    }
+
+    .zone-list {
+      margin-top: 24px;
+    }
+
+    .zone-item {
+      background: #f7fafc;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      border-left: 4px solid #667eea;
+    }
+
+    .json-output {
+      margin-top: 24px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 200px;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      resize: vertical;
+    }
+
+    .status-message {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .status-message.success {
+      background: #c6f6d5;
+      color: #22543d;
+      border: 1px solid #9ae6b4;
+    }
+
+    .status-message.error {
+      background: #fed7d7;
+      color: #742a2a;
+      border: 1px solid #fc8181;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 12px;
+      color: #667eea;
+    }
+
+    .spinner {
+      border: 3px solid #e2e8f0;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .info-box {
+      background: #bee3f8;
+      color: #2c5282;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 24px;
+      border-left: 4px solid #3182ce;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎨 Éditeur de Zones Éditables</h1>
+      <p class="subtitle">Définissez graphiquement les zones de personnalisation pour vos produits</p>
+    </header>
+
+    <div class="main-content">
+      <!-- Section gauche : Canvas d'édition -->
+      <div class="editor-section">
+        <div class="product-selector">
+          <label for="product-id">ID du Produit Shopify</label>
+          <input 
+            type="text" 
+            id="product-id" 
+            placeholder="Ex: gid://shopify/Product/1234567890"
+            value=""
+          />
+          <button class="btn btn-secondary" onclick="loadProduct()" style="margin-top: 12px;">
+            📥 Charger le produit
+          </button>
+        </div>
+
+        <div class="info-box">
+          💡 <strong>Instructions :</strong> Chargez un produit, puis cliquez sur "Ajouter une zone" pour créer des rectangles redimensionnables sur chaque vue.
+        </div>
+
+        <div class="view-tabs">
+          <div class="view-tab active" data-view="front" onclick="switchView('front')">Face avant</div>
+          <div class="view-tab" data-view="back" onclick="switchView('back')">Face arrière</div>
+          <div class="view-tab" data-view="left" onclick="switchView('left')">Gauche</div>
+          <div class="view-tab" data-view="right" onclick="switchView('right')">Droite</div>
+        </div>
+
+        <div class="canvas-container" id="canvas-container">
+          <img 
+            id="product-image" 
+            src="https://via.placeholder.com/600x800/cccccc/666666?text=Chargez+un+produit" 
+            alt="Product"
+          />
+          <div class="zone-overlay" id="zone-overlay"></div>
+        </div>
+
+        <div class="controls">
+          <button class="btn btn-primary" onclick="addZone()">
+            ➕ Ajouter une zone
+          </button>
+          <button class="btn btn-secondary" onclick="clearZones()">
+            🗑️ Effacer toutes les zones
+          </button>
+        </div>
+
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          Chargement...
+        </div>
+      </div>
+
+      <!-- Section droite : Contrôles et aperçu JSON -->
+      <div class="sidebar">
+        <h3 style="margin-bottom: 16px;">Zones définies</h3>
+        <div class="zone-list" id="zone-list">
+          <p style="color: #a0aec0; font-size: 13px;">Aucune zone définie</p>
+        </div>
+
+        <div class="json-output">
+          <label for="json-preview">JSON généré (Metafield "Zones Editables")</label>
+          <textarea id="json-preview" readonly></textarea>
+        </div>
+
+        <button class="btn btn-success" onclick="saveToShopify()" style="width: 100%; margin-top: 16px;">
+          💾 Sauvegarder dans Shopify
+        </button>
+
+        <div class="status-message" id="status-message"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const API_BASE_URL = 'http://localhost:3000'; // Changez selon votre déploiement
+    
+    // État global
+    let currentView = 'front';
+    let productId = '';
+    let zones = {
+      front: [],
+      back: [],
+      left: [],
+      right: []
+    };
+    let zoneCounter = 0;
+    let isDragging = false;
+    let isResizing = false;
+    let currentZone = null;
+    let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+    // Charger un produit depuis Shopify
+    async function loadProduct() {
+      const input = document.getElementById('product-id');
+      productId = input.value.trim();
+      
+      if (!productId) {
+        showMessage('error', 'Veuillez entrer un ID de produit');
+        return;
+      }
+
+      showLoading(true);
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/zones/product/${encodeURIComponent(productId)}`);
+        const data = await response.json();
+        
+        if (!response.ok) throw new Error(data.error || 'Erreur de chargement');
+        
+        // Charger l'image de la vue courante
+        const imageUrl = data.images[currentView] || data.images.front || 'https://via.placeholder.com/600x800';
+        document.getElementById('product-image').src = imageUrl;
+        
+        // Charger les zones existantes si disponibles
+        if (data.zones) {
+          zones = data.zones;
+          renderZones();
+        }
+        
+        showMessage('success', '✅ Produit chargé avec succès !');
+      } catch (error) {
+        console.error('Erreur:', error);
+        showMessage('error', error.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Changer de vue
+    function switchView(view) {
+      currentView = view;
+      
+      // Mettre à jour les onglets
+      document.querySelectorAll('.view-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.view === view);
+      });
+      
+      // Réafficher les zones de cette vue
+      renderZones();
+    }
+
+    // Ajouter une nouvelle zone
+    function addZone() {
+      const overlay = document.getElementById('zone-overlay');
+      const container = document.getElementById('canvas-container');
+      const img = document.getElementById('product-image');
+      
+      const imgRect = img.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      
+      // Créer la zone au centre
+      const zoneWidth = 200;
+      const zoneHeight = 200;
+      const zoneLeft = (imgRect.width - zoneWidth) / 2;
+      const zoneTop = (imgRect.height - zoneHeight) / 2;
+      
+      const zoneData = {
+        id: `zone-${++zoneCounter}`,
+        x: Math.round(zoneLeft),
+        y: Math.round(zoneTop),
+        w: zoneWidth,
+        h: zoneHeight
+      };
+      
+      zones[currentView].push(zoneData);
+      renderZones();
+      updateJSON();
+    }
+
+    // Rendre toutes les zones de la vue courante
+    function renderZones() {
+      const overlay = document.getElementById('zone-overlay');
+      overlay.innerHTML = '';
+      
+      const currentZones = zones[currentView];
+      
+      currentZones.forEach((zoneData, index) => {
+        const zone = createZoneElement(zoneData, index);
+        overlay.appendChild(zone);
+      });
+      
+      updateZoneList();
+      updateJSON();
+    }
+
+    // Créer l'élément DOM d'une zone
+    function createZoneElement(zoneData, index) {
+      const zone = document.createElement('div');
+      zone.className = 'editable-zone';
+      zone.dataset.index = index;
+      zone.style.left = zoneData.x + 'px';
+      zone.style.top = zoneData.y + 'px';
+      zone.style.width = zoneData.w + 'px';
+      zone.style.height = zoneData.h + 'px';
+      
+      // Label
+      const label = document.createElement('div');
+      label.className = 'zone-label';
+      label.textContent = `${zoneData.w}×${zoneData.h}`;
+      zone.appendChild(label);
+      
+      // Bouton supprimer
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-zone';
+      deleteBtn.innerHTML = '×';
+      deleteBtn.onclick = () => deleteZone(index);
+      zone.appendChild(deleteBtn);
+      
+      // Poignées de redimensionnement
+      ['nw', 'ne', 'sw', 'se'].forEach(position => {
+        const handle = document.createElement('div');
+        handle.className = `zone-handle ${position}`;
+        handle.dataset.position = position;
+        zone.appendChild(handle);
+        
+        handle.addEventListener('mousedown', (e) => startResize(e, zone, position));
+      });
+      
+      // Drag & drop
+      zone.addEventListener('mousedown', (e) => {
+        if (e.target === zone) startDrag(e, zone);
+      });
+      
+      return zone;
+    }
+
+    // Démarrer le drag
+    function startDrag(e, zone) {
+      if (isResizing) return;
+      isDragging = true;
+      currentZone = zone;
+      
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = parseInt(zone.style.left);
+      startTop = parseInt(zone.style.top);
+      
+      e.preventDefault();
+    }
+
+    // Démarrer le resize
+    function startResize(e, zone, position) {
+      isResizing = true;
+      currentZone = zone;
+      
+      startX = e.clientX;
+      startY = e.clientY;
+      startWidth = parseInt(zone.style.width);
+      startHeight = parseInt(zone.style.height);
+      startLeft = parseInt(zone.style.left);
+      startTop = parseInt(zone.style.top);
+      currentZone.dataset.resizePosition = position;
+      
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
+    // Événements globaux de souris
+    document.addEventListener('mousemove', (e) => {
+      if (isDragging && currentZone) {
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        
+        currentZone.style.left = (startLeft + dx) + 'px';
+        currentZone.style.top = (startTop + dy) + 'px';
+        
+        updateZoneLabel(currentZone);
+      }
+      
+      if (isResizing && currentZone) {
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        const position = currentZone.dataset.resizePosition;
+        
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+        let newLeft = startLeft;
+        let newTop = startTop;
+        
+        if (position.includes('e')) newWidth = Math.max(50, startWidth + dx);
+        if (position.includes('w')) {
+          newWidth = Math.max(50, startWidth - dx);
+          newLeft = startLeft + dx;
+        }
+        if (position.includes('s')) newHeight = Math.max(50, startHeight + dy);
+        if (position.includes('n')) {
+          newHeight = Math.max(50, startHeight - dy);
+          newTop = startTop + dy;
+        }
+        
+        currentZone.style.width = newWidth + 'px';
+        currentZone.style.height = newHeight + 'px';
+        currentZone.style.left = newLeft + 'px';
+        currentZone.style.top = newTop + 'px';
+        
+        updateZoneLabel(currentZone);
+      }
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isDragging || isResizing) {
+        saveZonePosition(currentZone);
+      }
+      isDragging = false;
+      isResizing = false;
+      currentZone = null;
+    });
+
+    // Sauvegarder la position d'une zone
+    function saveZonePosition(zone) {
+      const index = parseInt(zone.dataset.index);
+      zones[currentView][index] = {
+        x: Math.round(parseInt(zone.style.left)),
+        y: Math.round(parseInt(zone.style.top)),
+        w: Math.round(parseInt(zone.style.width)),
+        h: Math.round(parseInt(zone.style.height))
+      };
+      updateJSON();
+      updateZoneList();
+    }
+
+    // Mettre à jour le label d'une zone
+    function updateZoneLabel(zone) {
+      const label = zone.querySelector('.zone-label');
+      const w = Math.round(parseInt(zone.style.width));
+      const h = Math.round(parseInt(zone.style.height));
+      label.textContent = `${w}×${h}`;
+    }
+
+    // Supprimer une zone
+    function deleteZone(index) {
+      zones[currentView].splice(index, 1);
+      renderZones();
+    }
+
+    // Effacer toutes les zones de la vue courante
+    function clearZones() {
+      if (confirm(`Voulez-vous vraiment effacer toutes les zones de la vue "${currentView}" ?`)) {
+        zones[currentView] = [];
+        renderZones();
+      }
+    }
+
+    // Mettre à jour la liste des zones
+    function updateZoneList() {
+      const list = document.getElementById('zone-list');
+      const currentZones = zones[currentView];
+      
+      if (currentZones.length === 0) {
+        list.innerHTML = '<p style="color: #a0aec0; font-size: 13px;">Aucune zone définie pour cette vue</p>';
+        return;
+      }
+      
+      list.innerHTML = currentZones.map((zone, index) => `
+        <div class="zone-item">
+          <strong>Zone ${index + 1}</strong><br>
+          Position: (${zone.x}, ${zone.y})<br>
+          Taille: ${zone.w} × ${zone.h} px
+        </div>
+      `).join('');
+    }
+
+    // Mettre à jour le JSON
+    function updateJSON() {
+      const json = JSON.stringify(zones, null, 2);
+      document.getElementById('json-preview').value = json;
+    }
+
+    // Sauvegarder dans Shopify
+    async function saveToShopify() {
+      if (!productId) {
+        showMessage('error', 'Veuillez d\'abord charger un produit');
+        return;
+      }
+      
+      showLoading(true);
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/zones/save`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            productId: productId,
+            zones: zones
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) throw new Error(data.error || 'Erreur de sauvegarde');
+        
+        showMessage('success', '✅ Zones sauvegardées dans Shopify avec succès !');
+      } catch (error) {
+        console.error('Erreur:', error);
+        showMessage('error', error.message);
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Afficher un message
+    function showMessage(type, message) {
+      const msgEl = document.getElementById('status-message');
+      msgEl.className = `status-message ${type}`;
+      msgEl.textContent = message;
+      msgEl.style.display = 'block';
+      
+      setTimeout(() => {
+        msgEl.style.display = 'none';
+      }, 5000);
+    }
+
+    // Afficher/masquer le loading
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+
+    // Initialisation
+    updateJSON();
+  </script>
+</body>
+</html>
