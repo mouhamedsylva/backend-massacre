@@ -90,7 +90,7 @@ router.get('/product/:productId', async (req, res) => {
 
     // Chercher le metafield "Zones Editables"
     const zonesMetafield = product.metafields.edges.find(
-      edge => edge.node.namespace === 'custom' && edge.node.key === 'zones_editables'
+      edge => edge.node.namespace === 'custom' && edge.node.key === 'editable_zones'
     );
 
     let zones = null;
@@ -163,7 +163,7 @@ router.post('/save', async (req, res) => {
         metafields: [
           {
             namespace: 'custom',
-            key: 'zones_editables',
+            key: 'editable_zones',
             type: 'json',
             value: JSON.stringify(zones)
           }
@@ -260,7 +260,7 @@ router.get('/products', async (req, res) => {
     const products = data.data.products.edges.map(edge => {
       const product = edge.node;
       const zonesMetafield = product.metafields.edges.find(
-        m => m.node.key === 'zones_editables'
+        m => m.node.key === 'editable_zones'
       );
 
       return {
