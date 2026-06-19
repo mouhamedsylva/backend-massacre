@@ -15,7 +15,15 @@ const PORT = process.env.PORT || 3000;
 app.set('trust proxy', true);
 
 // ─── Sécurité ────────────────────────────────────────────────────────────────
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      imgSrc: ["'self'", "data:", "https://cdn.shopify.com", "https://res.cloudinary.com"],
+    }
+  }
+}));
 
 // ─── CORS Configuration ──────────────────────────────────────────────────────
 // Autoriser les requêtes depuis votre store Shopify et localhost pour tests
