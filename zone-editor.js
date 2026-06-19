@@ -112,46 +112,52 @@
 
     // Créer l'élément DOM d'une zone
     function createZoneElement(zoneData, index) {
-      const img = document.getElementById('product-image');
-      const imgRect = img.getBoundingClientRect();
-      
-      const zone = document.createElement('div');
-      zone.className = 'editable-zone';
-      zone.dataset.index = index;
-      zone.style.left = zoneData.x + 'px';
-      zone.style.top = zoneData.y + 'px';
-      zone.style.width = zoneData.w + 'px';
-      zone.style.height = zoneData.h + 'px';
-      
-      // Label
-      const label = document.createElement('div');
-      label.className = 'zone-label';
-      label.textContent = `${zoneData.w}×${zoneData.h}`;
-      zone.appendChild(label);
-      
-      // Bouton supprimer
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'delete-zone';
-      deleteBtn.innerHTML = '×';
-      deleteBtn.onclick = () => deleteZone(index);
-      zone.appendChild(deleteBtn);
-      
-      // Poignées de redimensionnement
-      ['nw', 'ne', 'sw', 'se'].forEach(position => {
+    const img = document.getElementById('product-image');
+    const imgRect = img.getBoundingClientRect();
+
+    // Conversion pourcentages -> pixels selon la taille actuelle de l'image
+    const left = zoneData.xPct * imgRect.width;
+    const top = zoneData.yPct * imgRect.height;
+    const width = zoneData.wPct * imgRect.width;
+    const height = zoneData.hPct * imgRect.height;
+
+    const zone = document.createElement('div');
+    zone.className = 'editable-zone';
+    zone.dataset.index = index;
+    zone.style.left = left + 'px';
+    zone.style.top = top + 'px';
+    zone.style.width = width + 'px';
+    zone.style.height = height + 'px';
+
+    // Label
+    const label = document.createElement('div');
+    label.className = 'zone-label';
+    label.textContent = `${Math.round(width)}×${Math.round(height)}`;
+    zone.appendChild(label);
+
+    // Bouton supprimer
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'delete-zone';
+    deleteBtn.innerHTML = '×';
+    deleteBtn.onclick = () => deleteZone(index);
+    zone.appendChild(deleteBtn);
+
+    // Poignées de redimensionnement
+    ['nw', 'ne', 'sw', 'se'].forEach(position => {
         const handle = document.createElement('div');
         handle.className = `zone-handle ${position}`;
         handle.dataset.position = position;
         zone.appendChild(handle);
-        
+
         handle.addEventListener('mousedown', (e) => startResize(e, zone, position));
-      });
-      
-      // Drag & drop
-      zone.addEventListener('mousedown', (e) => {
+    });
+
+    // Drag & drop
+    zone.addEventListener('mousedown', (e) => {
         if (e.target === zone) startDrag(e, zone);
-      });
-      
-      return zone;
+    });
+
+    return zone;
     }
 
     // Démarrer le drag
@@ -276,21 +282,21 @@
 
     // Mettre à jour la liste des zones
     function updateZoneList() {
-      const list = document.getElementById('zone-list');
-      const currentZones = zones[currentView];
-      
-      if (currentZones.length === 0) {
+    const list = document.getElementById('zone-list');
+    const currentZones = zones[currentView];
+
+    if (currentZones.length === 0) {
         list.innerHTML = '<p style="color: #a0aec0; font-size: 13px;">Aucune zone définie pour cette vue</p>';
         return;
-      }
-      
-      list.innerHTML = currentZones.map((zone, index) => `
+    }
+
+    list.innerHTML = currentZones.map((zone, index) => `
         <div class="zone-item">
-          <strong>Zone ${index + 1}</strong><br>
-          Position: (${zone.x}, ${zone.y})<br>
-          Taille: ${zone.w} × ${zone.h} px
+        <strong>Zone ${index + 1}</strong><br>
+        Position : (${(zone.xPct * 100).toFixed(1)}%, ${(zone.yPct * 100).toFixed(1)}%)<br>
+        Taille : ${(zone.wPct * 100).toFixed(1)}% × ${(zone.hPct * 100).toFixed(1)}%
         </div>
-      `).join('');
+    `).join('');
     }
 
     // Mettre à jour le JSON
