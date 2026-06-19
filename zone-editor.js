@@ -1,8 +1,9 @@
  const API_BASE_URL = 'https://backend-massacre-production.up.railway.app';
- 
+
  // État global
     let currentView = 'front';
     let productId = '';
+    let productImages = { front: null, back: null, left: null, right: null };
     let zones = {
       front: [],
       back: [],
@@ -28,41 +29,46 @@
       showLoading(true);
       
       try {
-        const response = await fetch(`${API_BASE_URL}/api/zones/product/${encodeURIComponent(productId)}`);
-        const data = await response.json();
-        
-        if (!response.ok) throw new Error(data.error || 'Erreur de chargement');
-        
-        // Charger l'image de la vue courante
-        const imageUrl = data.images[currentView] || data.images.front || 'https://via.placeholder.com/600x800';
-        document.getElementById('product-image').src = imageUrl;
-        
-        // Charger les zones existantes si disponibles
-        if (data.zones) {
-          zones = data.zones;
-          renderZones();
+            const response = await fetch(`${API_BASE_URL}/api/zones/product/${encodeURIComponent(productId)}`);
+            const data = await response.json();
+
+            if (!response.ok) throw new Error(data.error || 'Erreur de chargement');
+
+            productImages = data.images; // ← stocke toutes les vues
+
+            // Affiche l'image de la vue courante
+            updateProductImage();
+
+            if (data.zones) {
+            zones = data.zones;
+            renderZones();
+            }
+
+            showMessage('success', '✅ Produit chargé avec succès !');
+        } catch (error) {
+            console.error('Erreur:', error);
+            showMessage('error', error.message);
+        } finally {
+            showLoading(false);
         }
-        
-        showMessage('success', '✅ Produit chargé avec succès !');
-      } catch (error) {
-        console.error('Erreur:', error);
-        showMessage('error', error.message);
-      } finally {
-        showLoading(false);
-      }
+    }
+
+    // Nouvelle fonction
+    function updateProductImage() {
+        const imageUrl = productImages[currentView] || productImages.front || 'https://via.placeholder.com/600x800';
+        document.getElementById('product-image').src = imageUrl;
     }
 
     // Changer de vue
     function switchView(view) {
-      currentView = view;
-      
-      // Mettre à jour les onglets
-      document.querySelectorAll('.view-tab').forEach(tab => {
-        tab.classList.toggle('active', tab.dataset.view === view);
-      });
-      
-      // Réafficher les zones de cette vue
-      renderZones();
+        currentView = view;
+
+        document.querySelectorAll('.view-tab').forEach(tab => {
+            tab.classList.toggle('active', tab.dataset.view === view);
+        });
+
+        updateProductImage(); // ← ajouter ça
+        renderZones();
     }
 
     // Ajouter une nouvelle zone
