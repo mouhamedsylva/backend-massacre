@@ -1,3 +1,5 @@
+ const API_BASE_URL = 'https://backend-massacre-production.up.railway.app';
+ 
  // État global
     let currentView = 'front';
     let productId = '';
