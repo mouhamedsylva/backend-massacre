@@ -15,6 +15,7 @@ const router = express.Router();
 const { validateDevis } = require("../middlewares/validate");
 const { uploadAllViews } = require("../services/cloudinary.service");
 const { createDraftOrder } = require("../services/shopify.service");
+const { sendCustomerConfirmation, sendAdminNotification } = require("../services/email.service");
 
 /**
  * POST /submit-devis
@@ -91,11 +92,37 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
     console.log(`   - ${view}: ${url}`);
   });
 
-  // ── Étape 3 : Réponse succès ───────────────────────────────────────────────
+  // ── Étape 3 : Envoyer les emails ──────────────────────────────────────────────
+  try {
+    console.log("[Devis] Envoi des emails...");
+    
+    // Email de confirmation au client
+    await sendCustomerConfirmation({
+      customer,
+      product_title,
+      imageUrls,
+      draftOrder
+    });
+    
+    // Email de notification à l'admin
+    await sendAdminNotification({
+      customer,
+      product_title,
+      imageUrls,
+      draftOrder
+    });
+    
+    console.log("[Devis] ✅ Emails envoyés avec succès");
+  } catch (emailError) {
+    console.error("[Devis] ⚠️ Erreur lors de l'envoi des emails (non-bloquant) :", emailError.message);
+    // Ne pas bloquer la réponse si les emails échouent
+  }
+
+  // ── Étape 4 : Réponse succès ───────────────────────────────────────────────
   return res.status(201).json({
     success: true,
     message:
-      "Votre demande de devis a bien été reçue ! Notre équipe vous contactera sous 24–48h.",
+      "Votre demande de devis a bien été reçue ! Vérifiez votre boîte mail pour confirmation.",
     draft_order: draftOrder,
     customer_info: {
       name: `${customer.first_name} ${customer.last_name}`,
