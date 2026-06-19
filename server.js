@@ -71,7 +71,7 @@ app.use(express.json({ limit: "20mb" }));
 app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
 // ─── Servir l'éditeur de zones ────────────────────────────────────────────────
-app.use(express.static("..", { index: false }));
+app.use(express.static(__dirname, { index: false }));
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/", devisRouter);
