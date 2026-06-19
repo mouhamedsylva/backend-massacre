@@ -354,7 +354,7 @@
             placeholder="Ex: gid://shopify/Product/1234567890"
             value=""
           />
-          <button class="btn btn-secondary" style="margin-top: 12px;">
+          <button class="btn btn-secondary" id="load-btn" style="margin-top: 12px;">
             📥 Charger le produit
           </button>
         </div>
@@ -380,10 +380,10 @@
         </div>
 
         <div class="controls">
-          <button class="btn btn-primary">
+          <button class="btn btn-primary" id="add-zone-btn">
             ➕ Ajouter une zone
           </button>
-          <button class="btn btn-secondary">
+          <button class="btn btn-secondary" id="clear-zones-btn">
             🗑️ Effacer toutes les zones
           </button>
         </div>
@@ -406,7 +406,7 @@
           <textarea id="json-preview" readonly></textarea>
         </div>
 
-        <button class="btn btn-success" style="width: 100%; margin-top: 16px;">
+        <button class="btn btn-success" id="save-btn" style="width: 100%; margin-top: 16px;">
           💾 Sauvegarder dans Shopify
         </button>
 
