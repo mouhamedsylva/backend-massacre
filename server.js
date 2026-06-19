@@ -5,6 +5,7 @@ const cors = require("cors");
 const rateLimit = require("express-rate-limit");
 
 const devisRouter = require("./src/routes/devis");
+const zonesRouter = require("./src/routes/zones");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -71,6 +72,7 @@ app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/", devisRouter);
+app.use("/api/zones", zonesRouter);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
