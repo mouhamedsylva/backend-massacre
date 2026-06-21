@@ -79,7 +79,7 @@ ${visualizationUrl}
         {
           title: product_title,
           quantity: 1,
-          originalUnitPrice: product_price || "0.00",
+          originalUnitPrice: parseFloat(product_price || 0).toFixed(2),
           taxable: true,
           requiresShipping: true,
           customAttributes: [
