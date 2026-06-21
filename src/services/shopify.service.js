@@ -27,26 +27,24 @@ async function createDraftOrder({ customer, product_title, product_price, imageU
     );
   }
 
-  // Construire les custom attributes (properties) à partir des URLs
-  const customAttributes = Object.entries(imageUrls)
-    .filter(([, url]) => url)
-    .map(([view, url]) => ({
-      key: `🖼 Maquette ${view}`,
-      value: url
-    }));
+  // 🔍 Debug : Afficher les paramètres reçus
+  console.log(`[Shopify] 🔍 Création Draft Order avec :`);
+  console.log(`   product_title: "${product_title}"`);
+  console.log(`   product_price: "${product_price}" (type: ${typeof product_price})`);
+  console.log(`   customer: ${customer.first_name} ${customer.last_name} (${customer.email})`);
 
   // URL de la page de visualisation (hébergée sur le même serveur que l'API)
   const baseUrl = process.env.API_BASE_URL || 'http://localhost:3000';
   const visualizationUrl = `${baseUrl}/visualize/${sessionId}`;
 
-  // Créer une note formatée avec le lien de visualisation
+  // Créer une note formatée avec le lien de visualisation en HTML
   const noteText = `Demande de personnalisation sur-mesure depuis le configurateur web.
 Soumis le : ${new Date().toLocaleString("fr-FR", { timeZone: "Europe/Paris" })}
 
-📸 VISUALISER LES MAQUETTES :
+📸 VISUALISER LES MAQUETTES (cliquez sur le lien) :
 ${visualizationUrl}
 
-Conseil : Cliquez sur le lien ci-dessus pour voir toutes les images en haute qualité.`;
+💡 Toutes les maquettes sont disponibles en haute qualité sur cette page.`;
 
   // Mutation GraphQL pour créer un Draft Order
   const mutation = `
@@ -75,8 +73,7 @@ Conseil : Cliquez sur le lien ci-dessus pour voir toutes les images en haute qua
       customAttributes: [
         { key: "Prénom", value: customer.first_name },
         { key: "Nom", value: customer.last_name },
-        { key: "🔗 Visualisation", value: visualizationUrl },
-        ...customAttributes
+        { key: "🔗 Visualisation", value: visualizationUrl }
       ],
       lineItems: [
         {
@@ -86,13 +83,18 @@ Conseil : Cliquez sur le lien ci-dessus pour voir toutes les images en haute qua
           taxable: true,
           requiresShipping: true,
           customAttributes: [
-            { key: "🔗 Voir les maquettes", value: visualizationUrl },
-            ...customAttributes
+            { key: "🔗 Voir les maquettes", value: visualizationUrl }
           ]
         }
       ]
     }
   };
+
+  // 🔍 Debug : Afficher le lineItem envoyé à Shopify
+  console.log(`[Shopify] 🔍 LineItem envoyé :`);
+  console.log(`   title: "${variables.input.lineItems[0].title}"`);
+  console.log(`   originalUnitPrice: "${variables.input.lineItems[0].originalUnitPrice}"`);
+  console.log(`   quantity: ${variables.input.lineItems[0].quantity}`);
 
   const endpoint = `https://${SHOPIFY_STORE}/admin/api/${API_VERSION}/graphql.json`;
 

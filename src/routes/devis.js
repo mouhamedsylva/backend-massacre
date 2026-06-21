@@ -40,6 +40,12 @@ const { saveSession } = require("./visualize");
 router.post("/submit-devis", validateDevis, async (req, res) => {
   const { customer, product_title, product_price, images } = req.body;
 
+  // 🔍 Debug : Afficher les données reçues
+  console.log(`[Devis] 🔍 Données reçues :`);
+  console.log(`   product_title: "${product_title}"`);
+  console.log(`   product_price: "${product_price}"`);
+  console.log(`   customer: ${customer.first_name} ${customer.last_name}`);
+
   // ── Étape 1 : Upload Cloudinary ──────────────────────────────────────────────
   let imageUrls, sessionId;
   try {
@@ -66,6 +72,10 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
   let draftOrder;
   try {
     console.log("[Devis] Création du Draft Order Shopify...");
+    console.log(`[Devis] 🔍 Paramètres Draft Order :`);
+    console.log(`   product_title: "${product_title}"`);
+    console.log(`   product_price: "${product_price}"`);
+    
     draftOrder = await createDraftOrder({
       customer,
       product_title,
