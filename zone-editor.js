@@ -16,15 +16,37 @@
     let currentZone = null;
     let startX, startY, startWidth, startHeight, startLeft, startTop;
 
+    // Normaliser l'ID produit en ajoutant le préfixe si nécessaire
+    function normalizeProductId(id) {
+      id = id.trim();
+      
+      // Si l'ID commence déjà par gid://, on le garde tel quel
+      if (id.startsWith('gid://shopify/Product/')) {
+        return id;
+      }
+      
+      // Si c'est un nombre ou commence par un chiffre, on ajoute le préfixe
+      if (/^\d+$/.test(id)) {
+        return `gid://shopify/Product/${id}`;
+      }
+      
+      // Sinon, on retourne tel quel (peut-être déjà valide)
+      return id;
+    }
+
     // Charger un produit depuis Shopify
     async function loadProduct() {
       const input = document.getElementById('product-id');
-      productId = input.value.trim();
+      let inputValue = input.value.trim();
       
-      if (!productId) {
+      if (!inputValue) {
         showMessage('error', 'Veuillez entrer un ID de produit');
         return;
       }
+
+      // Normaliser l'ID et mettre à jour le champ input
+      productId = normalizeProductId(inputValue);
+      input.value = productId;
 
       showLoading(true);
       
@@ -363,6 +385,21 @@
 
     document.querySelectorAll('.view-tab').forEach(tab => {
     tab.addEventListener('click', () => switchView(tab.dataset.view));
+    });
+
+    // Ajouter un écouteur pour normaliser l'ID automatiquement quand l'utilisateur quitte le champ
+    document.getElementById('product-id').addEventListener('blur', function() {
+      const inputValue = this.value.trim();
+      if (inputValue) {
+        this.value = normalizeProductId(inputValue);
+      }
+    });
+    
+    // Aussi normaliser au moment de presser Entrée
+    document.getElementById('product-id').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        loadProduct();
+      }
     });
 
     // Initialisation
