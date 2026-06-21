@@ -44,7 +44,7 @@ async function uploadImage(base64DataUrl, viewName, sessionId) {
  * Upload toutes les vues fournies dans l'objet `images`.
  *
  * @param {Object} images - { front?: string, back?: string, left?: string, right?: string }
- * @returns {Promise<Object>} - Mêmes clés avec les URLs Cloudinary en valeur
+ * @returns {Promise<Object>} - { urls: {...}, sessionId: string }
  */
 async function uploadAllViews(images) {
   // Un identifiant unique par soumission pour regrouper les 4 vues dans Cloudinary
@@ -75,7 +75,7 @@ async function uploadAllViews(images) {
     throw new Error("Toutes les images ont échoué lors de l'upload Cloudinary.");
   }
 
-  return urls;
+  return { urls, sessionId };
 }
 
 module.exports = { uploadAllViews };

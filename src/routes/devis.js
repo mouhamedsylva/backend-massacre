@@ -16,6 +16,7 @@ const { validateDevis } = require("../middlewares/validate");
 const { uploadAllViews } = require("../services/cloudinary.service");
 const { createDraftOrder } = require("../services/shopify.service");
 const { sendCustomerConfirmation, sendAdminNotification } = require("../services/email.service");
+const { saveSession } = require("./visualize");
 
 /**
  * POST /submit-devis
@@ -40,13 +41,18 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
   const { customer, product_title, product_price, images } = req.body;
 
   // ── Étape 1 : Upload Cloudinary ──────────────────────────────────────────────
-  let imageUrls;
+  let imageUrls, sessionId;
   try {
     console.log(
       `[Devis] Upload des images pour ${customer.email} (${Object.keys(images).length} vues)...`
     );
-    imageUrls = await uploadAllViews(images);
-    console.log(`[Devis] ✅ Images uploadées :`, Object.keys(imageUrls));
+    const uploadResult = await uploadAllViews(images);
+    imageUrls = uploadResult.urls;
+    sessionId = uploadResult.sessionId;
+    console.log(`[Devis] ✅ Images uploadées (session: ${sessionId}) :`, Object.keys(imageUrls));
+    
+    // Sauvegarder la session pour la page de visualisation
+    saveSession(sessionId, imageUrls, customer);
   } catch (err) {
     console.error("[Devis] ❌ Erreur Cloudinary :", err.message);
     return res.status(502).json({
@@ -65,6 +71,7 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
       product_title,
       product_price,
       imageUrls,
+      sessionId,
     });
     console.log(`[Devis] ✅ Draft Order créé : ${draftOrder.name} (ID: ${draftOrder.id})`);
   } catch (err) {

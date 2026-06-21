@@ -6,6 +6,7 @@ const rateLimit = require("express-rate-limit");
 
 const devisRouter = require("./src/routes/devis");
 const zonesRouter = require("./src/routes/zones");
+const { router: visualizeRouter } = require("./src/routes/visualize");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -84,6 +85,7 @@ app.use(express.static(__dirname, { index: false }));
 // ─── Routes ───────────────────────────────────────────────────────────────────
 app.use("/", devisRouter);
 app.use("/api/zones", zonesRouter);
+app.use("/", visualizeRouter);
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {
