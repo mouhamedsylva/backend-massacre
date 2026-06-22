@@ -67,6 +67,11 @@ ${visualizationUrl}
     const safeTitle = (product_title && product_title.trim()) || "Produit Personnalisé";
     const safePrice = parseFloat(product_price);
     console.warn(`[Shopify] ⚠️ Pas de variant_id, fallback custom item`);
+
+
+    console.error(`[Shopify] ❌ FALLBACK activé — variant_id manquant ou invalide`);
+    console.error(`[Shopify]    product_title reçu: "${product_title}"`);
+    console.error(`[Shopify]    product_price reçu: "${product_price}" → parsed: ${safePrice}`);
     lineItem = {
       title: safeTitle,
       quantity: 1,
