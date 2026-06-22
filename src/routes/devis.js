@@ -42,10 +42,17 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
 
   // 🔍 Debug : Afficher les données reçues
   console.log(`[Devis] 🔍 Données reçues :`);
-  console.log(`   variant_id: "${variant_id}"`);
+  console.log(`   variant_id: "${variant_id}" (type: ${typeof variant_id})`);
   console.log(`   product_title: "${product_title}"`);
-  console.log(`   product_price: "${product_price}"`);
+  console.log(`   product_price: "${product_price}" (type: ${typeof product_price})`);
   console.log(`   customer: ${customer.first_name} ${customer.last_name}`);
+  
+  // 🔍 Debug : Vérifier si le variant_id est valide
+  if (variant_id && variant_id.includes('gid://shopify/ProductVariant/')) {
+    console.log(`[Devis] ✅ variant_id valide détecté`);
+  } else {
+    console.log(`[Devis] ⚠️ variant_id manquant ou invalide - fallback sur custom item`);
+  };
 
   // ── Étape 1 : Upload Cloudinary ──────────────────────────────────────────────
   let imageUrls, sessionId;
