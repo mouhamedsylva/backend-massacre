@@ -38,10 +38,11 @@ const { saveSession } = require("./visualize");
  * }
  */
 router.post("/submit-devis", validateDevis, async (req, res) => {
-  const { customer, product_title, product_price, images } = req.body;
+  const { customer, product_title, product_price, variant_id, images } = req.body;
 
   // 🔍 Debug : Afficher les données reçues
   console.log(`[Devis] 🔍 Données reçues :`);
+  console.log(`   variant_id: "${variant_id}"`);
   console.log(`   product_title: "${product_title}"`);
   console.log(`   product_price: "${product_price}"`);
   console.log(`   customer: ${customer.first_name} ${customer.last_name}`);
@@ -80,6 +81,7 @@ router.post("/submit-devis", validateDevis, async (req, res) => {
       customer,
       product_title,
       product_price,
+      variant_id,
       imageUrls,
       sessionId,
     });
